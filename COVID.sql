@@ -20,13 +20,6 @@ FROM  Covid..Death
 WHERE continent is null 
 ORDER BY 1,2 DESC 
 
--- Countries with Highest Infection Rate compared to Population
-
-SELECT Location, Population, MAX(total_cases) as count_with_highest_rate,  Max((total_cases/population))*100 AS percentage_ppl_covid
-FROM Covid..Death
-WHERE location is not null 
-GROUP BY Location, Population
-ORDER BY percentage_ppl_covid DESC
 
 -- The percentage of population have gotten COVID in a descending order
 
