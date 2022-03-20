@@ -1,0 +1,63 @@
+## I used V_Orders_Test data base provided in the Intermediate SQL for Data Analysis course on Udemy
+## Finding the first Sales Order Id when total sale is more than 300K
+drop table if exists #rankkings
+;WITH "orders" AS 
+(
+select 
+ SalesOrderID,
+  sum(LineTotal) AS TotalValueOrder
+from dbo.V_Orders_Test
+GROUP BY SalesOrderID
+)
+select 
+  *
+into #rankings
+from 
+  "orders"
+;WITH "rankingtotal" AS 
+(
+select 
+  SalesOrderID,
+  TotalValueOrder,
+  sum(TotalValueOrder) OVER(Order By SalesOrderID) As sum_of_total
+from #rankings
+)
+select 
+ Top 1 SalesOrderID,
+  min(sum_of_total)
+from "rankingtotal"
+where sum_of_total > 300000
+Group BY 
+  SalesOrderID
+  
+## how many SalesOrderID took t arrive at 300k$ sales
+drop table if exists  #ranking
+;WITH "Total" AS 
+(
+SELECT 
+  SalesOrderID,
+  sum(LineTotal) AS totalsale
+from 
+  dbo.V_Orders_Test
+Group By  
+  SalesOrderID
+)
+SELECT 
+  *,
+  ROW_NUMBER () OVER(ORDER BY SalesOrderID) AS RN
+INTO #ranking
+FROM 
+  "total"
+;WITH "rankedtotal" As 
+(
+select 
+  *,
+  sum(totalsale) OVER (Order by SalesOrderID) AS Totalrevenue
+from #ranking
+)
+select 
+  min(RN) 
+from 
+  "rankedtotal"
+where 
+  Totalrevenue > 300000
