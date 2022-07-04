@@ -1,0 +1,203 @@
+## There are three tables: Orders, Venues, Stock items
+## First of all I create a table named "Main table" by using join functions and WITH clause and, also, by filtering some unnecessary and uncomplete data.
+
+Create View Main_table As
+
+WITH "first_table" As
+(
+select 
+  orders.Created_date_order_requests,
+  orders.Venue_id,
+  venues.City,
+  Postal_code,
+  venues.[Shop_type ],
+  venues.Linked_venue_id,
+  orders.Stock_item_id, 
+  orders.Id_order_requests,
+  orders.Id_order_request_items,
+  orders.Order_request_items_count,
+  orders.Quantity,
+  items.price_cents,
+  items.category_1,
+  items.category_2,
+  items.category_3,
+  items.supplier_id
+from Sheet1$Orders as orders
+LEFT JOIN Sheet1$Venues as venues
+ON orders.Venue_id = venues.Venue_id
+LEFT JOIN stock_items$ as items
+ON orders.Stock_item_id = items.stock_item_id
+)
+select 
+  DATEPART(year, Created_date_order_requests) as year,  
+  DATEPART(month, Created_date_order_requests) as month,
+  Venue_id  as Trader_id,
+  Linked_venue_id,
+  City,
+  [Shop_type ],
+  Stock_item_id, 
+  Id_order_requests,
+  Id_order_request_items,
+  cast(Order_request_items_count as int) as Order_request_items_count,
+  cast(Quantity as int) as Quantity,
+  price_cents,
+  (Quantity*price_cents)as Revenue_cents,
+  category_1,
+  category_2,
+  category_3,
+  Supplier_id 
+
+from "first_table"
+where
+  price_cents <> 0 AND
+  [Shop_type ] <> 'Test (Filter Out)' 
+  
+## part 1 : Showing some fundamental KPIs on a monthly basis:
+## Number of Trader
+## Number of Orders per Trader
+## Number of Articles sold (Quantity) per Trader
+## Number of Categories (Category 1) per Trader
+## Quantity / Revenue per Order
+
+DROP Table if exists #base_table
+;WITH "first_table" As
+(
+select 
+  year,
+  month,
+  count(distinct(Trader_id))as Total_trader,
+  cast(count(distinct(Id_order_requests)) As int) AS Total_number_of_orders,
+  cast(sum(Quantity) As int) As Total_number_of_articles,
+  cast(sum(Revenue_cents) as int) As Total_revenue
+From Main_Table
+  Group by 
+  year,
+  month
+)
+
+select 
+  first.year,
+  first.month,
+  first.Total_trader,
+  second.Number_of_categories_1,
+  first.Total_number_of_orders,
+  first.Total_number_of_articles,
+  first.Total_revenue
+INTO #base_table
+from 
+ "first_table" as first
+JOIN Category as second
+ON (first.year = second.year) AND (first.month = second.month)
+
+select
+   year,
+   month,
+   Total_trader,
+   Total_number_of_orders,
+   (Total_number_of_orders/Total_trader)  As average_order_per_trader,
+   (Total_number_of_articles/Total_trader) As average_articles_per_trader,
+   (Total_number_of_articles/Total_number_of_orders) As average_articles_per_order,
+   (Total_revenue/Total_trader) As average_revenue_per_trader,
+   (Total_revenue/Total_number_of_orders)  As average_revenue_per_order,
+   (Number_of_categories_1/Total_trader)  AS average_categories_1
+from 
+  #base_table
+order by
+  year,
+  month
+
+## Part 2 (using Case statements) : How subcategories have performed  in each year?  
+
+select
+  year,
+  SUM (CASE
+    WHEN category_1 = 'Getränke'  THEN Revenue_cents/100
+    ELSE 0
+  END) AS Getränke,
+  SUM (CASE
+    WHEN category_1 = 'Non Food' THEN Revenue_cents/100
+    ELSE 0
+  END) AS Non_Food,
+  SUM (CASE
+    WHEN category_1 = 'Sonstiges' THEN Revenue_cents/100
+    ELSE 0
+  END) AS Sonstiges,
+  SUM (CASE
+    WHEN category_1 = 'Süßwaren und Gebäck' THEN Revenue_cents/100
+    ELSE 0
+  END) AS Süßwaren_und_Gebäck,
+  SUM (CASE
+    WHEN category_1 = 'Tabakwaren' THEN Revenue_cents/100
+    ELSE 0
+  END) AS Tabakwaren,
+  SUM (CASE
+    WHEN category_1 = 'Tiefkühlsortiment' THEN Revenue_cents/100
+    ELSE 0
+  END) AS Tiefkühlsortiment,
+  SUM (CASE
+    WHEN category_1 = 'Trockensortiment' THEN Revenue_cents/100
+    ELSE 0
+  END) AS Trockensortiment
+from Main_Table
+group by
+  year
+ 
+## Part 3 : Which supplier had the highest number of (ordering) Traders? Which supplier had the best performance in terms of quantity and of revenue?:
+
+select 
+  TOP 1
+  supplier_id,
+  sum(Quantity) as Total_quantity,
+  sum(Revenue_cents) as Total_revenue
+from Main_table
+  group by
+  supplier_id
+order by
+  Total_quantity DESC,
+  Total_revenue DESC
+  
+## How is this supplier’s “market share” developing throughout the year?
+
+DROP Table if exists #top_supplier
+select 
+  year,
+  month,
+  sum(Revenue_cents) as revenue_24 
+into #top_supplier
+from Main_table
+where 
+  supplier_id = 24
+group by
+  year,
+  month
+;WITH "total_table" AS
+(
+select 
+  year,
+  month,
+  sum(Revenue_cents) As Total_revenue
+from
+  Main_table
+group by
+  year,
+  month
+  )
+select
+ total.year,
+ total.month,
+ supplier.revenue_24,
+ total.Total_revenue,
+ round((supplier.revenue_24/total.Total_revenue*100),2) As top_supplier_market_share_percent
+from 
+  #top_supplier as supplier
+JOIN "total_table" as total
+ON (supplier.year = total.year) AND (supplier.month = total.month)
+order by
+  year,
+  month
+  
+  
+
+
+  
+
