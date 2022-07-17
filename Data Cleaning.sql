@@ -1,3 +1,4 @@
+-- We used Nashville Housing Data for Data Cleaning.xlsx file 
 -- Standardizing Date Format: Usually just converting and uodating the table solves the issue.
 
 Select CONVERT(Date, SaleDate) SaleDate
