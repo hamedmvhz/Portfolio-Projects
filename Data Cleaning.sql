@@ -184,7 +184,7 @@ DELETE
 FROM RowNumCTE
 WHERE row_num >1
 
--- Now, we want to delete unused columns. ** It is good to know that instead of what we do here and delete unsues table from the main source, we can create view a new table.
+-- Now, we want to delete unused columns. ** It is good to know that instead of what we do here, we can create view a new table.
 
 ALTER TABLE NashvilleHousing
 DROP COLUMN PropertyAddress,
