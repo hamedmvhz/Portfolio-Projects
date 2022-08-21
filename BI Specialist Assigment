@@ -1,0 +1,238 @@
+-- These are my own queries for the BI Specialist PDF.
+
+-- 1a) 
+SELECT  
+  CAST(user_registration_timestamp AS Date) AS Registration_Date, 
+  ch.channel_name AS Channel,
+  COUNT(DISTINCT user_ID) AS Num_of_Users
+FROM users us
+LEFT  JOIN contacts co
+ON us.user_ID = co.contact_user_ID
+LEFT  JOIN channels ch
+ON co.contact_channel_ID = ch.channel_ID
+WHERE   
+  ch.channel_name <> 'NULL'
+GROUP BY
+  CAST(user_registration_timestamp AS Date),
+  ch.channel_name
+ORDER BY
+  Registration_Date
+
+
+--1b)
+SELECT  
+  CAST(user_registration_timestamp AS Date) AS Registration_Date, 
+  COUNT(DISTINCT user_ID) AS Num_of_Users
+FROM users us
+LEFT  JOIN contacts co
+ON us.user_ID = co.contact_user_ID
+LEFT  JOIN channels ch
+ON co.contact_channel_ID = ch.channel_ID
+GROUP BY
+  CAST(user_registration_timestamp AS Date)
+ORDER BY
+  Registration_Date
+
+
+-- 2a)
+SELECT DISTINCT
+  us.user_city AS City,
+  SUM (pay_amount) AS pay_payment
+FROM users us
+LEFT JOIN sales sa
+ON us.user_ID = sa.sale_user_ID
+JOIN payments pa
+ON sa.sale_ID = pa.pay_sale_ID
+WHERE 
+  sa.sale_timestamp >= '01-01-2020' AND sa.sale_timestamp <'01-01-2021'
+GROUP BY us.user_city
+
+
+-- 2b) 
+DROP TABLE IF exists #first_table
+SELECT
+  us.user_ID,
+  ch.channel_name,
+  con.contact_timestamp,
+  MAX(con.contact_timestamp) OVER (PARTITION BY us.user_ID) AS last_contact
+INTO #first_table
+FROM users us
+JOIN contacts con
+ON us.user_ID = con.contact_user_ID
+JOIN channels ch
+ON con.contact_channel_ID = ch.channel_ID
+
+DROP TABLE IF exists #second_table
+SELECT
+  user_ID,
+  CASE WHEN last_contact = contact_timestamp AND channel_name='SEM' THEN 1 ELSE 0 END last_SEM,
+  CASE WHEN channel_name <> 'SEM' THEN 1 ELSE 0 END no_SEM
+INTO #second_table
+FROM #first_table 
+
+;WITH "#third_table" AS
+(
+SELECT   
+  COUNT(DISTINCT CASE WHEN last_SEM=1 THEN user_ID END) AS eligible_last_SEM,
+  COUNT(DISTINCT CASE WHEN no_SEM=1 THEN user_ID END) AS eligible_no_SEM
+FROM "#second_table" 
+GROUP BY user_ID
+)
+
+SELECT 
+  COUNT(*) AS Total_Eligible_Users
+FROM "#third_table"
+WHERE 
+  eligible_last_SEM = eligible_no_SEM 
+
+
+-- 2c)I assuemed sales done by user as only when the user paid the money. 
+DROP TABLE IF EXISTS #first
+SELECT DISTINCT 
+  us.user_registration_timestamp,
+  us.user_ID,
+  con.contact_timestamp,
+  MAX(con.contact_timestamp) OVER (PARTITION BY us.user_ID)  last_contact,
+  ch.channel_name,
+  sa.sale_ID,
+  sa.sale_timestamp,
+  CAST(py.pay_timestamp AS Date) AS Pay_Date
+INTO #first
+FROM 
+  users us
+LEFT JOIN contacts con
+ON us.user_ID = con.contact_user_ID
+LEFT JOIN channels ch
+ON con.contact_channel_ID = ch.channel_ID
+LEFT JOIN sales sa
+ON us.user_ID = sa.sale_user_ID
+LEFT JOIN payments py
+ON sa.sale_ID = py.pay_sale_ID
+ORDER BY user_ID
+
+DROP TABLE IF EXISTS #second
+SELECT DISTINCT  
+  CAST(f1.user_registration_timestamp AS Date) AS Registration_Date,
+  f1.channel_name AS Last_Channel,
+  f1. user_ID,
+  f1.sale_ID,
+  f1.Pay_Date
+INTO #second
+FROM #first f1
+JOIN #first f2
+ON f1.contact_timestamp  = f2.last_contact 
+
+;WITH "last_table" AS
+(
+SELECT *,
+  datediff(DAY, Registration_Date,Pay_Date) AS days_after_registration
+FROM #second
+)
+
+SELECT 
+  Registration_Date,
+  Last_Channel,
+  (SELECT  COUNT(DISTINCT last2.user_ID)  FROM "last_table" last2 WHERE last2.Registration_Date=last1.Registration_Date AND last2.last_channel=last1.last_channel ) AS Total_Num_Users,
+  (SELECT  COUNT(DISTINCT last3.days_after_registration) FROM "last_table" last3 WHERE last3.Registration_Date=last1.Registration_Date AND last3.last_channel=last1.last_channel AND last3.days_after_registration <= 3) AS Users_Paid_After_3_Days
+FROM "last_table" AS last1
+GROUP BY 
+  Registration_Date,
+  Last_Channel
+
+
+--3a)
+DROP TABLE IF EXISTS #info_table
+SELECT DISTINCT
+  CAST (info_timestamp AS Date) As Date,
+  SUM(info_clicks) AS Num_of_Clicks
+INTO #info_table
+from informations
+GROUP BY 
+  CAST (info_timestamp AS Date)
+ORDER BY 
+  CAST (info_timestamp AS Date)
+  
+
+DROP TABLE IF EXISTS #reg_table
+SELECT DISTINCT
+  CAST (user_registration_timestamp AS Date) AS Date,
+  COUNT(DISTINCT user_ID) As Total_Registered
+INTO #reg_table
+FROM users 
+GROUP BY
+  CAST (user_registration_timestamp AS Date)
+ORDER BY 
+  CAST (user_registration_timestamp AS Date)
+  
+
+;WITH "final_table" AS
+(
+SELECT Date, Num_of_Clicks, 0 AS Total_Registered
+FROM #info_table
+
+UNION
+
+SELECT Date, 0 AS Num_of_Clicks, Total_Registered
+FROM #reg_table
+)
+
+
+SELECT DISTINCT 
+  Date,
+  SUM(Total_Registered) AS Total_Registered_Users,
+  SUM(Num_of_Clicks) AS Total_Num_Clicks
+FROM "final_table"
+WHERE 
+  DATE BETWEEN '2020-01-01' AND '2020-12-31'
+GROUP BY
+  Date
+ORDER BY
+  Date
+
+
+--3b)
+DROP TABLE IF EXISTS #test
+SELECT 
+  info_timestamp  As Click_Date,
+  info_clicks As Num_of_Clicks,
+  user_registration_timestamp AS Reg_Date,
+  user_ID
+INTO #test
+FROM informations inf
+LEFT JOIN contacts con
+ON inf.info_timestamp = con.contact_timestamp
+LEFT JOIN users us
+ON us.user_ID = con.contact_user_ID
+
+DROP TABLE IF EXISTS #Reg_Table
+SELECT DISTINCT
+  CAST (Click_Date As Date) Click_Date,
+  COUNT(CASE WHEN CAST(Click_Date As Date) = CAST(Reg_Date As Date) THEN user_ID END) As Registered_Users
+INTO #Reg_Table
+FROM #test 
+GROUP BY 
+  CAST (Click_Date As Date)
+
+DROP TABLE IF EXISTS #Info_Table
+SELECT DISTINCT
+  CAST (info_timestamp AS date) As Date,
+  SUM(info_clicks) As Num_of_Clicks
+INTO #info_table
+from informations
+GROUP BY 
+  CAST (info_timestamp AS date)
+ORDER BY 
+  CAST (info_timestamp AS date)
+
+SELECT DISTINCT
+  Reg.Click_Date,
+  Reg.Registered_Users,
+  Inf.Num_of_Clicks
+FROM #Reg_Table Reg
+JOIN #Info_Table Inf
+ON Reg.Click_Date = Inf.Date
+WHERE 
+  Click_Date BETWEEN '2020-01-01' AND '2020-12-31' 
+ORDER BY 
+  Reg.Click_Date
+
