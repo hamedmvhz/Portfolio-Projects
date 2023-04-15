@@ -1,0 +1,183 @@
+   ## Summary of performance in all the countries
+   
+   Select Distinct
+   Count(distinct name) As Total_Hotels_Turkey,
+   Sum(number_of_bookings_last24m) As Sum_Num_bookings,
+   Sum(hotelier_pictures) As Sum_hotelier_pictures,
+   Sum(user_pictures) As Sum_user_pictures,
+   Sum(overall_reviews) As Sum_overall_reviews,
+   Sum(sessions_last_24m) AS Sum_sessions,
+   AVG(Cast (totalavgrating as float)) As AvgRating,
+   AVG(totalavgrecommendation) As Avg_recommendation,
+   SUM(countactiveaccounts) As Sum_active_accounts
+From Turkey
+
+Select Distinct
+   Count(distinct name) As Total_Hotels_Turkey,
+   Sum(number_of_bookings_last24m) As Sum_Num_bookings,
+   Sum(hotelier_pictures) As Sum_hotelier_pictures,
+   Sum(user_pictures) As Sum_user_pictures,
+   Sum(overall_reviews) As Sum_overall_reviews,
+   Sum(sessions_last_24m) AS Sum_sessions,
+   AVG(Cast (totalavgrating as float)) As AvgRating,
+   AVG(totalavgrecommendation) As Avg_recommendation,
+   SUM(countactiveaccounts) As Sum_active_accounts
+From Spain
+
+Select Distinct
+   Count(distinct name) As Total_Hotels_Turkey,
+   Sum(number_of_bookings_last24m) As Sum_Num_bookings,
+   Sum(hotelier_pictures) As Sum_hotelier_pictures,
+   Sum(user_pictures) As Sum_user_pictures,
+   Sum(overall_reviews) As Sum_overall_reviews,
+   Sum(sessions_last_24m) AS Sum_sessions,
+   AVG(Cast (totalavgrating as float)) As AvgRating,
+   AVG(totalavgrecommendation) As Avg_recommendation,
+   SUM(countactiveaccounts) As Sum_active_accounts
+From Egypt
+
+Select Distinct
+   Count(distinct name) As Total_Hotels_Turkey,
+   Sum(number_of_bookings_last24m) As Sum_Num_bookings,
+   Sum(hotelier_pictures) As Sum_hotelier_pictures,
+   Sum(user_pictures) As Sum_user_pictures,
+   Sum(overall_reviews) As Sum_overall_reviews,
+   Sum(sessions_last_24m) AS Sum_sessions,
+   AVG(Cast (totalavgrating as float)) As AvgRating,
+   AVG(totalavgrecommendation) As Avg_recommendation,
+   SUM(countactiveaccounts) As Sum_active_accounts
+From Griechenland
+
+## Ratio by Star
+
+Select Distinct
+   stars As Stars,
+   Count(distinct name) As Total_Hotels_Turkey,
+   Sum(ttv_last24m) As Sum_total_transaction,
+   Sum(number_of_bookings_last24m) As Sum_Num_bookings,
+   Sum(hotelier_pictures) As Sum_hotelier_pictures,
+   Sum(user_pictures) As Sum_user_pictures,
+   Sum(overall_reviews) As Sum_overall_reviews,
+   Sum(sessions_last_24m) AS Sum_sessions,
+   AVG(Cast (totalavgrating as float)) As AvgRating,
+   AVG(totalavgrecommendation) As Avg_recommendation,
+   SUM(countactiveaccounts) As Sum_active_accounts
+From Turkey
+Group by stars
+
+Select 
+   stars As Stars,
+   Count(distinct name) As Total_Hotels,
+   Sum(ttv_last24m) As Sum_total_transaction,
+   Sum(number_of_bookings_last24m) As Sum_Num_bookings,
+   Sum(hotelier_pictures) As Sum_hotelier_pictures,
+   Sum(user_pictures) As Sum_user_pictures,
+   Sum(overall_reviews) As Sum_overall_reviews,
+   Sum(sessions_last_24m) AS Sum_sessions,
+   AVG(Cast (totalavgrating as float)) As AvgRating,
+   AVG(totalavgrecommendation) As Avg_recommendation,
+   SUM(countactiveaccounts) As Sum_active_accounts
+From Spain
+Group by stars
+Order by stars
+
+Select 
+   stars As Stars,
+   Count(distinct name) As Total_Hotels,
+   Sum(ttv_last24m) As Sum_total_transaction,
+   Sum(number_of_bookings_last24m) As Sum_Num_bookings,
+   Sum(hotelier_pictures) As Sum_hotelier_pictures,
+   Sum(user_pictures) As Sum_user_pictures,
+   Sum(overall_reviews) As Sum_overall_reviews,
+   Sum(sessions_last_24m) AS Sum_sessions,
+   AVG(Cast (totalavgrating as float)) As AvgRating,
+   AVG(totalavgrecommendation) As Avg_recommendation,
+   SUM(countactiveaccounts) As Sum_active_accounts
+From Egypt
+Group by stars
+Order by stars
+
+Select 
+   stars As Stars,
+   Count(distinct name) As Total_Hotels,
+   Sum(ttv_last24m) As Sum_total_transaction,
+   Sum(number_of_bookings_last24m) As Sum_Num_bookings,
+   Sum(hotelier_pictures) As Sum_hotelier_pictures,
+   Sum(user_pictures) As Sum_user_pictures,
+   Sum(overall_reviews) As Sum_overall_reviews,
+   Sum(sessions_last_24m) AS Sum_sessions,
+   AVG(Cast (totalavgrating as float)) As AvgRating,
+   AVG(totalavgrecommendation) As Avg_recommendation,
+   SUM(countactiveaccounts) As Sum_active_accounts
+From Griechenland
+Group by stars
+Order by stars
+
+
+## Analysis based on grouping by hotels which has text on their profile
+
+Select Distinct
+   has_hoteltext,
+   Count(distinct name) As Total_Hotels,
+   Sum(ttv_last24m) As Sum_total_transaction,
+   Sum(number_of_bookings_last24m) As Sum_Num_bookings,
+   Sum(hotelier_pictures) As Sum_hotelier_pictures,
+   Sum(user_pictures) As Sum_user_pictures,
+   Sum(overall_reviews) As Sum_overall_reviews,
+   Sum(sessions_last_24m) AS Sum_sessions,
+   AVG(Cast (totalavgrating as float)) As AvgRating,
+   AVG(totalavgrecommendation) As Avg_recommendation,
+   SUM(countactiveaccounts) As Sum_active_accounts
+From Turkey
+Group by 
+  has_hoteltext
+
+Select Distinct
+   has_hoteltext,
+   Count(distinct name) As Total_Hotels,
+   Sum(ttv_last24m) As Sum_total_transaction,
+   Sum(number_of_bookings_last24m) As Sum_Num_bookings,
+   Sum(hotelier_pictures) As Sum_hotelier_pictures,
+   Sum(user_pictures) As Sum_user_pictures,
+   Sum(overall_reviews) As Sum_overall_reviews,
+   Sum(sessions_last_24m) AS Sum_sessions,
+   AVG(Cast (totalavgrating as float)) As AvgRating,
+   AVG(totalavgrecommendation) As Avg_recommendation,
+   SUM(countactiveaccounts) As Sum_active_accounts
+From Spain
+Group by 
+  has_hoteltext
+
+Select Distinct
+   has_hoteltext,
+   Count(distinct name) As Total_Hotels,
+   Sum(ttv_last24m) As Sum_total_transaction,
+   Sum(number_of_bookings_last24m) As Sum_Num_bookings,
+   Sum(hotelier_pictures) As Sum_hotelier_pictures,
+   Sum(user_pictures) As Sum_user_pictures,
+   Sum(overall_reviews) As Sum_overall_reviews,
+   Sum(sessions_last_24m) AS Sum_sessions,
+   AVG(Cast (totalavgrating as float)) As AvgRating,
+   AVG(totalavgrecommendation) As Avg_recommendation,
+   SUM(countactiveaccounts) As Sum_active_accounts
+From Egypt
+Group by 
+  has_hoteltext
+
+
+
+Select Distinct
+   has_hoteltext,
+   Count(distinct name) As Total_Hotels,
+   Sum(ttv_last24m) As Sum_total_transaction,
+   Sum(number_of_bookings_last24m) As Sum_Num_bookings,
+   Sum(hotelier_pictures) As Sum_hotelier_pictures,
+   Sum(user_pictures) As Sum_user_pictures,
+   Sum(overall_reviews) As Sum_overall_reviews,
+   Sum(sessions_last_24m) AS Sum_sessions,
+   AVG(Cast (totalavgrating as float)) As AvgRating,
+   AVG(totalavgrecommendation) As Avg_recommendation,
+   SUM(countactiveaccounts) As Sum_active_accounts
+From Griechenland
+Group by 
+  has_hoteltext
