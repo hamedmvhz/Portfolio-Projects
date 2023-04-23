@@ -1,0 +1,43 @@
+# import data
+Segmentation <- read_excel("D:/Professional/Website/Claster Analysis/Market-Segmentation.xlsx")
+View(Segmentation)
+
+
+install.packages("dlookr")
+library(dlookr)
+
+# Data exploration
+
+diagnose_web_report(Segmentation)
+
+# Choose the number of clusters
+k <- 3
+
+
+# Select only the numeric variables
+mydata_numeric <- select_if(Segmentation, is.numeric)
+View(mydata_numeric)
+
+# Normalize the data
+mydata_norm <- scale(mydata_numeric)
+
+
+# Run the K-Means algorithm
+set.seed(123) # for reproducibility
+mykmeans <- kmeans(mydata_norm, centers = k)
+
+
+# Install and load the factoextra package
+install.packages("factoextra")
+library(factoextra)
+
+fviz_cluster(mykmeans, data = mydata_norm, 
+             geom = "point", stand = FALSE, 
+             ellipse.type = "norm")
+
+# Analyze the results
+cluster_assignments <- mykmeans$cluster
+centroids <- mykmeans$centers
+View(centroids)
+summary(centroids)
+
